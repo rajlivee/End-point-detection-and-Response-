@@ -1,0 +1,12 @@
+# Known malicious IP blacklist
+# One IP per line.  Lines starting with # are ignored.
+# These IPs are used by the network monitor and network simulator.
+#
+# Example threat-intel IPs (publicly reported C2 / Tor exit nodes):
+185.220.101.1
+185.220.101.34
+194.165.16.11
+45.142.212.100
+91.108.56.130
+198.50.222.94
+5.188.86.172

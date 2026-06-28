@@ -1,0 +1,27 @@
+# Environment & secrets
+.env
+
+# Runtime-generated data
+data/edr.db
+data/edr.db-shm
+data/edr.db-wal
+logs/*
+!logs/.gitkeep
+exports/*
+!exports/.gitkeep
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp

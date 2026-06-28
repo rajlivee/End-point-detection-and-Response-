@@ -1,0 +1,11 @@
+flask==3.0.3
+flask-socketio==5.3.6
+flask-cors==4.0.0
+psutil==6.0.0
+watchdog==4.0.1
+pywin32==312
+requests==2.32.3
+reportlab==4.2.2
+colorama==0.4.6
+schedule==1.2.2
+setuptools==75.1.0

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EDR Dashboard — Endpoint Detection & Response</title>
+  <meta name="description" content="Lightweight Windows EDR system with real-time threat monitoring, process tree, GeoIP map, and attack simulator." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet.js -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Our CSS -->
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     TOP NAVIGATION
+     ═══════════════════════════════════════════════════════ -->
+<nav class="top-nav">
+  <div class="nav-brand">
+    <div class="nav-logo">🛡️</div>
+    <div>
+      <div class="nav-title">EDR Monitor</div>
+      <div class="nav-subtitle">Endpoint Detection &amp; Response · Hindalco Internship Project</div>
+    </div>
+  </div>
+
+  <div class="nav-status">
+    <div class="status-dot"></div>
+    <span>System Active</span>
+    <span id="ws-status" style="color:#8b5cf6;margin-left:0.5rem;display:none">· Live</span>
+  </div>
+
+  <div class="nav-actions">
+    <button id="btn-csv" class="btn btn-ghost">⬇ CSV</button>
+    <button id="btn-pdf" class="btn btn-primary">📄 PDF Report</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAIN CONTENT
+     ═══════════════════════════════════════════════════════ -->
+<div class="app-container">
+<div class="main-content">
+
+  <!-- ── STATS BAR ──────────────────────────────────────── -->
+  <div class="stats-bar">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">📊</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Total Alerts</div>
+      </div>
+    </div>
+    <div class="stat-card stat-critical">
+      <div class="stat-icon">🔴</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-critical">0</div>
+        <div class="stat-label">Critical</div>
+      </div>
+    </div>
+    <div class="stat-card stat-high">
+      <div class="stat-icon">🟠</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-high">0</div>
+        <div class="stat-label">High</div>
+      </div>
+    </div>
+    <div class="stat-card stat-medium">
+      <div class="stat-icon">🟡</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-medium">0</div>
+        <div class="stat-label">Medium</div>
+      </div>
+    </div>
+    <div class="stat-card stat-low">
+      <div class="stat-icon">🟢</div>
+      <div class="stat-info">
+        <div class="stat-value" id="stat-low">0</div>
+        <div class="stat-label">Low</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ATTACK SIMULATOR ───────────────────────────────── -->
+  <div class="sim-panel">
+    <div class="sim-header">
+      <div>
+        <div class="sim-title">🎯 Attack Simulator</div>
+        <div class="sim-subtitle">Safe simulations for demo purposes — no real malware</div>
+      </div>
+      <div class="sim-badge">Demo Mode</div>
+    </div>
+    <div class="sim-buttons">
+      <button class="sim-btn" data-sim="ransomware">
+        🔴 Simulate Ransomware
+      </button>
+      <button class="sim-btn" data-sim="process">
+        🟠 Simulate Suspicious Process
+      </button>
+      <button class="sim-btn" data-sim="network">
+        🟡 Simulate Bad IP Connection
+      </button>
+      <button class="sim-btn" data-sim="bruteforce">
+        🔵 Simulate Brute Force Login
+      </button>
+      <button class="sim-btn" data-sim="privilege">
+        🟣 Simulate Privilege Escalation
+      </button>
+      <button class="sim-btn all-btn" data-sim="all">
+        ⚡ Run All Attacks
+      </button>
+      <button class="sim-btn cleanup-btn" data-sim="cleanup">
+        🧹 Clear Simulation Data
+      </button>
+    </div>
+  </div>
+
+  <!-- ── MAIN GRID (Alert Feed | Process Tree | Map) ──────── -->
+  <div class="main-grid">
+
+    <!-- Left: Alert Feed -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">🚨 Alert Feed</div>
+        <span class="badge badge-type" id="alert-count-badge">Live</span>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="critical">Critical</button>
+        <button class="filter-btn" data-filter="high">High</button>
+        <button class="filter-btn" data-filter="medium">Medium</button>
+        <button class="filter-btn" data-filter="low">Low</button>
+        <button class="filter-btn" data-filter="file">File</button>
+        <button class="filter-btn" data-filter="network">Network</button>
+        <button class="filter-btn" data-filter="process">Process</button>
+        <button class="filter-btn" data-filter="eventlog">Events</button>
+        <button class="filter-btn" data-filter="simulation">SIM</button>
+      </div>
+
+      <div class="panel-body">
+        <div id="alert-feed" class="alert-feed">
+          <div class="empty-state">
+            <div class="icon">🛡️</div>
+            <div>Loading alerts…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centre: Process Tree -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">🌳 Process Tree</div>
+        <button class="btn btn-ghost" style="font-size:0.75rem;padding:0.3rem 0.6rem"
+                onclick="loadProcessTree()">↻ Refresh</button>
+      </div>
+      <div class="panel-body">
+        <div id="process-tree-container" class="process-tree">
+          <div class="empty-state">
+            <div class="icon">⏳</div>
+            <div>Loading processes…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column Wrapper -->
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <!-- Right: GeoIP Map -->
+      <div class="panel" style="flex: 1; min-height: 250px;">
+        <div class="panel-header">
+          <div class="panel-title">🌍 GeoIP Connection Map</div>
+          <span style="font-size:0.7rem;color:#475569">ip-api.com</span>
+        </div>
+        <div id="geo-map" style="height: 100%;"></div>
+      </div>
+      
+      <!-- Right: Notifications -->
+      <div class="panel" style="flex: 1; min-height: 250px; display: flex; flex-direction: column;">
+        <div class="panel-header">
+          <div class="panel-title">🔔 Notifications</div>
+        </div>
+        <div class="panel-body" style="padding: 0.5rem; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 0.5rem;" id="toast-container">
+          <!-- Toasts will appear here -->
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+  <!-- ── CHARTS ROW ──────────────────────────────────────── -->
+  <div class="charts-grid">
+
+    <!-- Timeline line chart -->
+    <div class="chart-panel">
+      <div class="chart-title">📈 Alerts Over Time (Last 60 min)</div>
+      <div style="position:relative;height:200px">
+        <canvas id="chart-timeline"></canvas>
+      </div>
+    </div>
+
+    <!-- Donut: alerts by type -->
+    <div class="chart-panel">
+      <div class="chart-title">🍩 Alerts by Type</div>
+      <div style="position:relative;height:200px">
+        <canvas id="chart-donut"></canvas>
+      </div>
+    </div>
+
+    <!-- Bar: top suspicious processes -->
+    <div class="chart-panel">
+      <div class="chart-title">⚙️ Top Flagged Processes</div>
+      <div style="position:relative;height:200px">
+        <canvas id="chart-bar"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /charts-grid -->
+
+</div><!-- /main-content -->
+</div><!-- /app-container -->
+
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════ -->
+<!-- Socket.IO CDN -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<!-- Leaflet.js -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<!-- Our JS (load order matters) -->
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/map.js"></script>
+<script src="/static/js/process_tree.js"></script>
+<script src="/static/js/dashboard.js"></script>
+
+</body>
+</html>
